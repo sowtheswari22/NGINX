@@ -1,0 +1,12 @@
+What is NGINX?
+NGINX is an open-source, high-performance web server that also functions as:
+
+A reverse proxy
+Load balancer
+HTTP cache
+Mail proxy
+
+Installing NGINX
+🐧 On Ubuntu/Debian
+sudo apt update
+sudo apt install nginx -y
