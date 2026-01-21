@@ -1,0 +1,152 @@
+systemd + Auto-Restart (Gunicorn + Flask)
+🎯 Goal of this stage
+
+Gunicorn starts automatically on server boot
+
+Gunicorn restarts if it crashes
+
+You don’t need to run commands manually
+
+NGINX talks to Gunicorn all the time
+
+🔹 Prerequisites (confirm once)
+
+You already have:
+
+Flask app → /home/sowtheswari22/app.py
+
+Virtualenv → /home/sowtheswari22/flask-env
+
+Gunicorn installed inside venv
+
+NGINX reverse proxy configured
+
+Gunicorn runs on 127.0.0.1:8000
+
+🔹 Step 1 — Identify your Flask app object (VERY IMPORTANT)
+
+Open app.py:
+
+nano /home/sowtheswari22/app.py
+
+
+Make sure it looks like this:
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Welcome to Application"
+
+if __name__ == "__main__":
+    app.run()
+
+
+👉 Your WSGI callable is named: app
+
+So Gunicorn command will be:
+
+app:app
+
+🔹 Step 2 — Create systemd service file
+
+Go to systemd directory:
+
+sudo nano /etc/systemd/system/flaskapp.service
+
+
+Paste exactly this (very important):
+
+[Unit]
+Description=Gunicorn service for Flask app
+After=network.target
+
+[Service]
+User=mohancbe5202
+Group=www-data
+WorkingDirectory=/home/sowtheswari22
+Environment="PATH=/home/sowthesawri22/flask-env/bin"
+ExecStart=/home/sowtheswari22/flask-env/bin/gunicorn \
+          --workers 3 \
+          --bind 127.0.0.1:8000 \
+          app:app
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+
+Save:
+
+CTRL + X → Y → Enter
+
+🔹 Step 3 — Reload systemd
+
+Tell systemd a new service exists:
+
+sudo systemctl daemon-reload
+
+🔹 Step 4 — Start the Flask service
+sudo systemctl start flaskapp
+
+
+Check status:
+
+sudo systemctl status flaskapp
+
+
+You should see:
+
+Active: active (running)
+
+🔹 Step 5 — Enable auto-start on boot
+sudo systemctl enable flaskapp
+
+
+Output:
+
+Created symlink ...
+
+🔹 Step 6 — Test auto-restart (IMPORTANT)
+
+Stop it manually:
+
+sudo systemctl stop flaskapp
+
+
+Check:
+
+sudo systemctl status flaskapp
+
+
+Now start again:
+
+sudo systemctl start flaskapp
+
+
+OR kill Gunicorn process:
+
+sudo pkill gunicorn
+
+
+Wait 5 seconds, then:
+
+sudo systemctl status flaskapp
+
+
+✅ It should restart automatically
+
+🔹 Step 7 — Final end-to-end test
+sudo ss -lntup | grep 8000
+
+
+Browser:
+
+http://<server-ip>
+
+
+🎉 Your app should load perfectly.
