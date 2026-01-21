@@ -10,3 +10,11 @@ Installing NGINX
 🐧 On Ubuntu/Debian
 sudo apt update
 sudo apt install nginx -y
+
+Enable NGINX
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+
+✔️ Test:
+Open browser → http://SERVER_IP
