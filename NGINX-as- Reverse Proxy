@@ -1,2 +1,128 @@
 What is a Reverse Proxy?
 A reverse proxy is a server that receives client requests and forwards them to backend servers, then sends the response back to the client.
+
+NGINX Reverse Proxy Configuration (Step by Step)
+🎯 Goal of this stage
+
+NGINX listens on port 80
+
+Gunicorn runs internally on port 8000
+
+Users access the app using browser → port 80
+
+They never see port 8000
+
+🔹 Step 1 — Confirm NGINX is installed
+
+Run:
+
+nginx -v
+
+
+If not installed:
+
+sudo apt update
+sudo apt install nginx -y
+
+
+Start & enable:
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+
+Test in browser:
+
+http://<server-ip>
+
+
+You should see NGINX Welcome Page ✅
+
+🔹 Step 2 — Go to NGINX config directory
+cd /etc/nginx/sites-available
+ls
+
+
+You will see:
+
+default
+
+🔹 Step 3 — Create a config file for Flask app
+sudo nano flaskapp
+
+
+Paste  this configuration:
+
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+🔍 What this means (simple):
+
+listen 80 → NGINX listens on browser port
+
+proxy_pass → forwards request to Gunicorn
+
+headers → pass client info correctly
+
+Save:
+
+CTRL + X → Y → Enter
+
+🔹 Step 4 — Enable the site
+
+Go to enabled sites:
+
+cd /etc/nginx/sites-enabled
+ls
+
+
+Enable your app:
+
+sudo ln -s /etc/nginx/sites-available/flaskapp .
+
+
+Remove default site:
+
+sudo rm default
+
+🔹 Step 5 — Test NGINX configuration
+sudo nginx -t
+
+
+You must see:
+
+syntax is ok
+test is successful
+
+🔹 Step 6 — Restart NGINX
+sudo systemctl restart nginx
+
+🔹 Step 7 — Final test (MOST IMPORTANT)
+
+Make sure Gunicorn is running:
+
+sudo ss -lntup | grep 8000
+
+
+Now open browser:
+
+http://<server-ip>
+
+
+🎉 You should see your Flask app without port number
+### Result
+Flask app accessible via port 80.
+✅ What this stage proves
+➡️ NGINX correctly proxies requests to Gunicorn
+
+
